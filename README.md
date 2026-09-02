@@ -1,93 +1,175 @@
-# AIMatic RAG Boilerplate
+# GoML DevOps RAG Studio
 
-Welcome to the **AIMatic RAG Boilerplate**, a standardized, production-ready backend framework designed for building Retrieval-Augmented Generation (RAG) applications across the organization.
+A standardized, production-grade **Retrieval-Augmented Generation (RAG)** platform and intelligent assistant tailored for DevOps troubleshooting, runbooks, architecture exploration, and incident resolution.
 
-## Purpose
-
-This boilerplate simplifies the creation of AI-powered systems by providing a pre-configured architecture that supports multiple RAG strategies, vector databases, and multimodal interactions. It follows the **AIMatic Standard Project Structure**, ensuring consistency and modularity across all internal projects.
+Powered by **AWS Bedrock (`minimax.minimax-m2.5`)**, **Local Vector Embeddings (`sentence-transformers/all-MiniLM-L6-v2`)**, **FAISS Vector Store**, and a modern **React + Vite** frontend.
 
 ---
 
-## High-Level Flow
+## 🌟 Key Features
 
-1.  **Ingestion**: Documents are loaded, chunked, and embedded via the **Core Pipeline** and stored in the **Vector Adapter**.
-2.  **Request**: An external client calls the **API Layer**.
-3.  **Orchestration**: The **Service Layer** resolves the requested RAG strategy and vector store.
-4.  **Retrieval**: The **Core Pipeline** searches for context within the **Vector Adapter**.
-5.  **Generation**: The **LLM Adapter** (AWS Bedrock/Claude 3) generates a grounded response.
-
----
-
-## Developer Handbook: Where is everything?
-
-| Component | Location | Responsibility |
-| :--- | :--- | :--- |
-| **API Endpoints** | `app/api/endpoints/` | HTTP request handling, input validation. |
-| **Pydantic Schemas** | `app/api/schemas/` | Request/Response data models. |
-| **Business Services** | `app/services/` | Logic orchestration (chatbot, retrieval, ingestion). |
-| **RAG Strategies** | `app/core/pipelines/rag/strategies/` | RAG logic (Naive, Advanced, Agentic, etc.). |
-| **Ingestion Logic** | `app/core/pipelines/ingestion/` | Document loaders and chunking algorithms. |
-| **Third-party Adapters** | `app/adapters/` | SDK integrations for LLMs and Vector DBs. |
-| **Prompts** | Inside Strategy classes in `app/core/` | Prompt templates for LLM generation. |
-| **Configuration** | `app/config/settings.py` & `.env` | Environment variables and global settings. |
+- **DevOps Knowledge Engine**: Pre-indexed with **41 Nexora DevOps documents** across:
+  - 🚨 **Incident Postmortems** (`INC-001` to `INC-012`)
+  - 🛠️ **Troubleshooting Runbooks** (`RB-001` to `RB-012`)
+  - 📋 **Standard Operating Procedures** (`SOP-001` to `SOP-006`)
+  - 🏗️ **Architecture & Microservices** (`ARCH-001` to `ARCH-006`)
+  - 📊 **Monitoring & Observability** (`MON-001` to `MON-004`)
+- **AWS Bedrock LLM Integration**: Uses `minimax.minimax-m2.5` via the Bedrock Converse API with reasoning block extraction.
+- **Local Embedding Execution**: Embedded via `all-MiniLM-L6-v2` (384-dim) for fast retrieval without external embedding API costs.
+- **Multi-Vector Store Support**: FAISS (local embedded store), Qdrant, Milvus, PGVector, OpenSearch, and Neo4j.
+- **Modern GoML UI**: Clean, responsive black & precision orange interface with full Markdown formatting, code copy, expandable context citations, and document ingestion.
 
 ---
 
-## How to Utilize this Boilerplate
+## 🏗️ Architecture & Project Structure
 
-### 1. Selecting RAG Type
-Developers can select the RAG strategy dynamically via the API (using the `rag_strategy` parameter) or programmatically. The system uses a **Registry Pattern** defined in `app/config/registry.py`.
-
-### 2. Modifying Prompts
-Prompts are currently encapsulated within the strategy classes (e.g., `app/core/pipelines/rag/strategies/naive.py`). To modify the system's behavior, navigate to the relevant strategy and update the `_build_context` or `generate` methods.
-
-### 3. Adding a New RAG Strategy
-1.  Create a new file in `app/core/pipelines/rag/strategies/`.
-2.  Inherit from `RAGStrategy` in `base.py`.
-3.  Use the `@register_strategy(RAGType.YOUR_TYPE)` decorator.
-4.  Implement the `retrieve` and `generate` methods.
-
-### 4. Adding a New Vector Store
-1.  Add a new adapter in `app/adapters/vector_store/`.
-2.  Inherit from `VectorStoreAdapter` in `base.py`.
-3.  Use the `@register_adapter("your_store_name")` decorator.
-
----
-
-## Setup & Local Development
-
-### Prerequisites
-- Python 3.10+
-- AWS Credentials (for Bedrock)
-- Access to a Vector Database (FAISS is provided for local file-based testing)
-
-### Installation
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure environment
-cp .env.example .env
-# Update .env with your AWS_REGION, BEDROCK_MODEL_ID, etc.
-
-# Run the project
-fastapi dev app/main.py
+```text
+.
+├── app/
+│   ├── adapters/vector_store/     # FAISS, Qdrant, PGVector, Milvus, OpenSearch
+│   ├── api/
+│   │   ├── dependencies/          # Dependency injection (LLM, Embedder, Store)
+│   │   ├── endpoints/rag/         # Naive, Ingestion, Chatbot APIs
+│   │   └── schemas/rag/           # Pydantic request/response models
+│   ├── config/                    # Base, Model Gateway, RAG Settings
+│   ├── core/
+│   │   ├── model_gateway/         # Bedrock, Azure, OpenAI unified provider
+│   │   └── pipelines/rag/         # Ingestion pipelines, chunkers, strategies
+│   ├── services/rag/              # IngestionService, RetrievalService, ChatbotService
+│   └── utils/rag/                 # GatewayLLMClient (SentenceTransformer + Bedrock)
+├── frontend/                      # React 19 + Vite + Lucide UI (GoML Theme)
+│   ├── src/
+│   │   ├── components/            # ChatView, IngestionView, Sidebar
+│   │   ├── services/api.js        # FastAPI Client
+│   │   └── index.css              # Precision Orange & Black Design System
+│   └── package.json
+├── faiss_data/                    # Persistent vector indices & metadata
+├── nexora_devops_rag_dataset/     # 41 Markdown knowledge base documents
+├── requirements.txt               # Backend Python dependencies
+├── run.py                         # Startup script
+└── .env                           # Environment configuration
 ```
 
-### Documentation Links
-- [API Documentation](API_DOCUMENTATION.md)
-- [Modularity Architecture](MODULARITY.md)
-- [Multimodal Support](MULTIMODAL.md)
+---
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+- **Python 3.10+** (Recommended Python 3.11 / 3.12 / 3.14)
+- **Node.js 18+** & `npm`
+- **AWS Bedrock Access** (with access to `minimax.minimax-m2.5`)
 
 ---
 
-## Consumption for Individual Projects
+### 2. Backend Setup
 
-To use this boilerplate for your specific project:
-1.  **Clone/Copy** the `Backend/` folder.
-2.  **Define your Schema**: Update `app/api/schemas/` if your model requirements differ.
-3.  **Configure Logic**: Select your preferred `rag_strategy` and `vector_store` in the `.env`.
-4.  **Custom Prompts**: Tailor the language templates in `app/core/pipelines/rag/strategies/` to your domain.
+```powershell
+# 1. Activate your virtual environment
+.\.venv\Scripts\Activate.ps1
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Configure environment variables in .env
+# Required AWS credentials:
+# AWS_ACCESS_KEY_ID=your_access_key
+# AWS_SECRET_ACCESS_KEY=your_secret_key
+# AWS_DEFAULT_REGION=us-east-1
+# MODEL_ID=minimax.minimax-m2.5
+# EMBEDDING_MODEL_ID=all-MiniLM-L6-v2
+# DEFAULT_VECTOR_STORE=faiss
+
+# 4. Start the FastAPI backend server
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+The backend documentation will be accessible at:
+- **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Health Check**: [http://localhost:8000/api/health](http://localhost:8000/api/health)
 
 ---
-**Standardized for AIMatic Compliance**
+
+### 3. Frontend Setup
+
+```powershell
+# 1. Navigate to frontend directory
+cd frontend
+
+# 2. Install UI dependencies
+npm install
+
+# 3. Launch Vite development server
+npm run dev
+```
+
+Open your browser at **[http://localhost:5173](http://localhost:5173)** to access the GoML DevOps Assistant.
+
+---
+
+## 🔍 Example Queries to Test
+
+Try asking questions in the chat interface:
+
+| Category | Example Question | Target Documents |
+| :--- | :--- | :--- |
+| **SOPs** | *"What approvals and steps are needed before executing a database schema change?"* | `SOP-004-database-change.md` |
+| **Incidents** | *"What was the root cause and resolution for the payment 503 incident (INC-001)?"* | `INC-001-payment-503.md` |
+| **Runbooks** | *"How do I troubleshoot Kubernetes pod CrashLoopBackOff?"* | `RB-002-crashloopbackoff.md` |
+| **Architecture** | *"Explain Nexora's authentication architecture and JWT token flow."* | `ARCH-003-authentication.md` |
+| **Monitoring** | *"What are the critical alert severities and escalation paths?"* | `MON-003-alert-severity-guide.md` |
+
+---
+
+## 📊 Dataset Re-Indexing (Optional)
+
+If you modify or add new markdown files in `nexora_devops_rag_dataset/`, re-ingest them with:
+
+```powershell
+python -c "
+import asyncio
+from app.services.rag.ingestion_service import IngestionService
+from app.utils.rag.llm_client import GatewayLLMClient
+
+async def reindex():
+    llm = GatewayLLMClient()
+    service = IngestionService(embedder=llm)
+    res = await service.ingest_directory(
+        directory_path='nexora_devops_rag_dataset',
+        vector_store='faiss',
+        collection_name='nexora_devops',
+        reset_collection=True
+    )
+    print('Ingested documents:', res.get('total_documents'), '| Vectors stored:', res.get('vectors_stored'))
+
+asyncio.run(reindex())
+"
+```
+
+---
+
+## 🛠️ API Reference
+
+### RAG Single-Pass Query
+`POST /api/rag/naive/query`
+```json
+{
+  "query": "What are the rollback procedures in SOP-002?",
+  "vector_store": "faiss",
+  "collection_name": "nexora_devops",
+  "top_k": 5,
+  "score_threshold": 0.0
+}
+```
+
+### Document Ingestion
+`POST /api/rag/ingestion/file` (multipart/form-data)
+- `file`: Upload document (`.md`, `.pdf`, `.txt`, `.json`)
+- `vector_store`: `faiss`
+- `collection_name`: `nexora_devops`
+- `chunk_size`: `1000`
+- `chunk_overlap`: `200`
+
+---
+
+## 🏢 Organization & Standard
+Developed under the **GoML Intelligent Systems** architecture standard.
